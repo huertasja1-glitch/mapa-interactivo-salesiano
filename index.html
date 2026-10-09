@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interactivo | Colegio Salesiano Don Bosco</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Configuración de Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        salesiano: {
+                            navy: '#102a43',
+                            blue: '#176b87',
+                            gold: '#e3b341',
+                            red: '#e63f3a',
+                            paper: '#f3f6f9'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Estilos Personalizados y Animaciones -->
+    <style>
+        body { background-color: #f8fafc; }
+        button, input, textarea, select { font: inherit; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(227,179,65,0.3); transform: scale(1); }
+            50% { box-shadow: 0 0 40px rgba(227,179,65,0.7); transform: scale(1.02); }
+        }
+        .animate-pulse-glow { animation: pulseGlow 2.5s infinite ease-in-out; }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+        }
+        .animate-float { animation: floatSlow 6s ease-in-out infinite; }
+
+        #enter-btn {
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 18px 40px rgba(227, 179, 65, 0.35);
+        }
+
+        #enter-btn:hover {
+            box-shadow: 0 22px 46px rgba(227, 179, 65, 0.45);
+            transform: translateY(-1px);
+        }
+
+        #map-image {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: none;
+            object-fit: contain;
+            background: linear-gradient(180deg, #f8fafc 0%, #eef4f9 100%);
+            box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+        }
+
+        #map-container {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .intro-exit {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+            transition: all 0.8s ease-in-out;
+        }
+
+        .admin-draggable { cursor: grab; }
+        .admin-draggable:active { cursor: grabbing; }
+        
+        body.add-mode #map-container { cursor: crosshair !important; }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden text-slate-800 selection:bg-salesiano-blue selection:text-white">
+
+    <div id="intro-view" class="fixed inset-0 z-[100] bg-gradient-to-br from-salesiano-navy to-salesiano-blue flex flex-col items-center justify-center text-center p-6 transition-all duration-700">
+        <!-- Decoración de fondo -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute top-10 left-10 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl animate-float"></div>
+            <div class="absolute bottom-20 right-20 w-64 h-64 bg-salesiano-gold opacity-10 rounded-full blur-3xl animate-float" style="animation-delay: -3s;"></div>
+            <div class="absolute top-1/2 left-3/4 w-48 h-48 bg-salesiano-blue opacity-20 rounded-full blur-2xl animate-float" style="animation-delay: -1.5s;"></div>
+        </div>
+        
+        <div class="relative z-10 max-w-3xl">
+            <div class="w-24 h-24 mx-auto bg-white/10 rounded-full flex items-center justify-center mb-8 shadow-inner border border-white/20 animate-fade-in-up backdrop-blur-sm">
+                <i class="fa-solid fa-map-location-dot text-4xl text-salesiano-gold"></i>
+            </div>
+            
+            <h1 class="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-4 animate-fade-in-up delay-100 tracking-tight leading-tight">
+                Bienvenidos al<br>II Encuentro de Bandas Sinfónicas Salesianas - Piura 2026
+            </h1>
+            <h2 class="text-xl md:text-3xl font-medium text-blue-100 mb-2 animate-fade-in-up delay-200">
+                Colegio Salesiano Don Bosco
+            </h2>
+            
+            <div class="w-16 h-1.5 bg-salesiano-gold mx-auto my-8 rounded-full animate-fade-in-up delay-300"></div>
+            
+            <p class="text-lg md:text-xl text-white/80 font-light mb-12 animate-fade-in-up delay-400 max-w-2xl mx-auto">
+                Mapa interactivo para que puedan recorrer y ubicarse en nuestro colegio con seguridad. Ubica fácilmente todos los escenarios, aulas, zonas de servicio y zonas de ensayo por instrumento y ensamble.  </p>
+            
+            <button id="enter-btn" class="group relative px-8 py-4 bg-salesiano-gold text-salesiano-navy text-lg font-extrabold rounded-full animate-pulse-glow transition-all duration-300 animate-fade-in-up delay-500 overflow-hidden">
+                <span class="relative z-10 flex items-center gap-3">
+                    Ingresar al Mapa <i class="fa-solid fa-arrow-right group-hover:translate-x-1.5 transition-transform"></i>
+                </span>
+                <div class="absolute inset-0 h-full w-0 bg-white/30 transition-all duration-300 ease-out group-hover:w-full"></div>
+            </button>
+        </div>
+    </div>
+
+    <div id="app-view" class="hidden flex-1 flex flex-col h-full w-full opacity-0 transition-opacity duration-1000">
+        
+        <!-- Encabezado / Header -->
+        <header class="bg-white shadow-sm z-30 flex-shrink-0 relative border-b border-slate-200">
+            <div class="w-full px-4 md:px-6 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-gradient-to-br from-salesiano-navy to-salesiano-blue p-2.5 rounded-xl shadow-inner">
+                        <i class="fa-solid fa-map text-salesiano-gold text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg md:text-xl font-black text-slate-800 leading-none">Mapa Salesiano</h1>
+                        <p class="text-[0.65rem] text-salesiano-blue uppercase tracking-widest font-bold mt-1">II Encuentro de Bandas Sinfónicas Salesianas - Piura 2026</p>
+                    </div>
+                </div>
+                
+                <!-- Botón Toggle Admin -->
+                <div>
+                    <button id="btn-toggle-admin" class="text-slate-400 hover:text-salesiano-navy transition-colors p-2.5 rounded-xl hover:bg-slate-100 flex items-center gap-2" title="Acceso Administrador">
+                        <span class="hidden md:inline text-xs font-bold uppercase tracking-wider" id="admin-text">Modo Visitante</span>
+                        <i class="fa-solid fa-lock text-lg" id="admin-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative bg-slate-200">
+            
+            <aside id="sidebar" class="w-full md:w-80 lg:w-[400px] bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col z-20 flex-shrink-0 h-[45vh] md:h-full transition-all relative shadow-[4px_0_24px_rgba(0,0,0,0.05)]">
+                
+                <!-- Buscador (Siempre visible) -->
+                <div class="p-4 border-b border-slate-100 bg-white shrink-0 z-10">
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="search-input" placeholder="Buscar lugar, aula o servicio..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salesiano-blue/50 focus:bg-white text-sm font-medium transition-all shadow-sm">
+                    </div>
+                </div>
+                
+                <!-- Área de Contenido Dinámico (Leyenda o Detalles) -->
+                <div class="flex-1 overflow-hidden relative">
+                    
+                    <!-- Lista de Leyenda -->
+                    <div id="legend-container" class="absolute inset-0 overflow-y-auto bg-slate-50/30 hide-scrollbar pb-4">
+                        <div class="px-4 pt-4 pb-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Leyenda de Ubicaciones</div>
+                        <div id="legend-list" class="flex flex-col">
+                            <!-- Los items se inyectan por JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Panel de Detalles -->
+                    <div id="details-container" class="hidden absolute inset-0 overflow-y-auto bg-white p-5 animate-fade-in-up z-20 hide-scrollbar">
+                        <button onclick="selectPoint(null)" class="mb-5 inline-flex items-center gap-2 text-salesiano-blue text-sm font-bold hover:bg-slate-50 py-2 px-3 rounded-xl transition-colors border border-transparent hover:border-slate-100">
+                            <i class="fa-solid fa-arrow-left"></i> Volver a la leyenda
+                        </button>
+                        <div id="details-content">
+                            <!-- Contenido inyectado por JS -->
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <div id="admin-controls" class="hidden shrink-0 p-4 border-t border-slate-200 bg-amber-50 flex-col gap-3 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-amber-400"></div>
+                    <div class="flex items-center justify-between text-amber-800 font-black text-sm uppercase tracking-wide">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-unlock-keyhole"></i> Panel de Edición</span>
+                        <span id="pin-size-label" class="text-[0.7rem] bg-amber-200/80 px-2 py-0.5 rounded-md font-mono">Pin: 100%</span>
+                    </div>
+                    
+                    <!-- Control deslizante para el tamaño de los pines -->
+                    <div class="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-amber-200">
+                        <span class="text-[0.7rem] font-bold text-amber-900 whitespace-nowrap"><i class="fa-solid fa-arrows-to-dot mr-1"></i>Tamaño Pin:</span>
+                        <input type="range" id="pin-size-slider" min="0.5" max="2.0" step="0.1" value="0.8" class="w-full accent-salesiano-navy cursor-pointer">
+                    </div>
+
+                    <button id="btn-add-point" class="w-full py-2.5 bg-salesiano-navy text-white rounded-xl text-sm font-bold hover:bg-blue-900 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Añadir Nuevo Lugar
+                    </button>
+                    <div class="flex gap-2">
+                        <button id="btn-export" class="flex-1 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-download text-salesiano-blue"></i> Exportar
+                        </button>
+                        <label class="flex-1 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors text-center cursor-pointer shadow-sm flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-upload text-salesiano-blue"></i> Importar
+                            <input type="file" id="btn-import" class="hidden" accept=".json,application/json">
+                        </label>
+                    </div>
+                    <p class="text-[0.65rem] text-amber-700/80 leading-tight mt-1 text-center font-medium">
+                        * Exporta el archivo JSON para guardar tus cambios y actualizar la web.
+                    </p>
+                </div>
+            </aside>
+            
+            <section class="flex-1 relative overflow-auto cursor-grab active:cursor-grabbing" id="map-scroll-container">
+                
+                <!-- Indicador Flotante de Añadir Punto -->
+                <div id="add-mode-indicator" class="hidden fixed top-24 left-1/2 -translate-x-1/2 py-2.5 px-5 bg-salesiano-navy text-white text-sm font-bold rounded-full shadow-2xl flex items-center gap-3 z-40 animate-bounce border-2 border-salesiano-gold/30">
+                    <i class="fa-solid fa-crosshairs text-salesiano-gold"></i>
+                    <span>Haz clic en el mapa para ubicarlo</span>
+                    <button id="btn-cancel-add" class="ml-1 w-6 h-6 rounded-full bg-white/20 hover:bg-salesiano-red flex items-center justify-center transition-colors"><i class="fa-solid fa-times"></i></button>
+                </div>
+
+                <div id="map-container" class="relative w-[1200px] origin-top-left transition-transform duration-200 mx-auto shadow-2xl bg-white border border-slate-300">
+                    <!-- IMPORTANTE: El src debe ser reemplazado por el mapa real -->
+                    <img src="mapa-del-colegio.png" 
+                         id="map-image" 
+                         alt="Plano del Colegio" 
+                         class="w-full h-auto block select-none pointer-events-none">
+                    
+                    <!-- Los pines se inyectan aquí -->
+                </div>
+            </section>
+
+            <!-- Controles flotantes de Zoom -->
+            <div class="absolute bottom-6 right-6 flex flex-col gap-2 z-30">
+                <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-slate-200/50 p-1.5 flex flex-col">
+                    <button id="btn-zoom-in" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-700 transition-colors"><i class="fa-solid fa-plus"></i></button>
+                    <div class="h-px bg-slate-200 mx-2 my-1"></div>
+                    <button id="btn-zoom-reset" class="w-10 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 font-bold text-[0.7rem]">100%</button>
+                    <div class="h-px bg-slate-200 mx-2 my-1"></div>
+                    <button id="btn-zoom-out" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-700 transition-colors"><i class="fa-solid fa-minus"></i></button>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <div id="point-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform scale-95 transition-transform duration-300 overflow-hidden flex flex-col max-h-[95vh]" id="point-modal-content">
+            
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="text-lg font-black text-salesiano-navy" id="modal-title">Añadir Lugar</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-salesiano-red transition-colors w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="px-6 py-5 overflow-y-auto flex-1 hide-scrollbar">
+                <form id="point-form" class="space-y-4">
+                    <input type="hidden" id="form-id">
+                    <input type="hidden" id="form-x">
+                    <input type="hidden" id="form-y">
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">Número en Leyenda</label>
+                            <input type="number" id="form-num" required min="1" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-salesiano-blue focus:border-transparent text-sm bg-slate-50 focus:bg-white transition-all font-bold">
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">Categoría</label>
+                            <div class="relative">
+                                <select id="form-category" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-salesiano-blue focus:border-transparent text-sm appearance-none bg-slate-50 focus:bg-white transition-all font-medium">
+                                    <!-- Inyectado por JS -->
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Título del Lugar</label>
+                        <input type="text" id="form-title" required class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-salesiano-blue focus:border-transparent text-sm bg-slate-50 focus:bg-white transition-all" placeholder="Ej. Escenario Principal">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Descripción</label>
+                        <textarea id="form-desc" rows="3" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-salesiano-blue focus:border-transparent text-sm resize-none bg-slate-50 focus:bg-white transition-all" placeholder="Detalles, indicaciones u horarios..."></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Nombre del archivo de Imagen</label>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-image text-slate-400 text-xl"></i>
+                            <input type="text" id="form-image" class="flex-1 px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-salesiano-blue focus:border-transparent text-sm bg-slate-50 focus:bg-white transition-all" placeholder="ej. escenario_principal.jpg">
+                        </div>
+                        <p class="text-[0.7rem] text-slate-500 mt-2 leading-tight">
+                            Coloca solo el nombre del archivo (ej. <span class="font-mono bg-slate-100 px-1 rounded">foto1.jpg</span>). Asegúrate de subir esta imagen en la misma carpeta que este archivo HTML.
+                        </p>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                <button type="button" onclick="closeModal()" class="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
+                <button type="button" onclick="savePoint()" class="px-6 py-2.5 text-sm font-bold text-white bg-salesiano-navy hover:bg-blue-900 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-check"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Notification Modal (Replaces alert) -->
+    <div id="notification-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-[110] opacity-0 transition-opacity duration-200 p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center transform scale-95 transition-transform duration-200" id="notification-content">
+            <div id="notification-icon" class="w-12 h-12 mx-auto rounded-full bg-blue-100 text-salesiano-blue flex items-center justify-center text-xl mb-4">
+                <i class="fa-solid fa-info"></i>
+            </div>
+            <h4 id="notification-title" class="text-base font-black text-slate-800 mb-2">Aviso</h4>
+            <p id="notification-message" class="text-sm text-slate-600 mb-6 leading-relaxed">Mensaje del sistema</p>
+            <button onclick="closeNotification()" class="w-full py-2.5 bg-salesiano-navy text-white rounded-xl text-sm font-bold hover:bg-blue-900 transition-colors shadow-md">Entendido</button>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal (Replaces confirm) -->
+    <div id="confirm-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-[110] opacity-0 transition-opacity duration-200 p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center transform scale-95 transition-transform duration-200" id="confirm-content">
+            <div class="w-12 h-12 mx-auto rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xl mb-4">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h4 id="confirm-title" class="text-base font-black text-slate-800 mb-2">Confirmar Acción</h4>
+            <p id="confirm-message" class="text-sm text-slate-600 mb-6 leading-relaxed">¿Estás seguro de realizar esta acción?</p>
+            <div class="flex gap-3">
+                <button id="confirm-cancel-btn" class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">Cancelar</button>
+                <button id="confirm-ok-btn" class="flex-1 py-2.5 bg-salesiano-red text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors shadow-md">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-password-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-[120] opacity-0 transition-opacity duration-200 p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 transform scale-95 transition-transform duration-200" id="admin-password-content">
+            <div class="w-12 h-12 mx-auto rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xl mb-4">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <h4 class="text-base font-black text-slate-800 mb-2">Acceso de administrador</h4>
+            <p class="text-sm text-slate-600 mb-4 leading-relaxed">Introduce la contraseña para activar el modo de edición.</p>
+            <label for="admin-password-input" class="sr-only">Contraseña</label>
+            <input id="admin-password-input" type="password" autocomplete="off" spellcheck="false" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-salesiano-blue focus:border-transparent text-sm bg-slate-50 focus:bg-white transition-all" placeholder="Contraseña">
+            <div class="flex gap-3 mt-5">
+                <button type="button" onclick="closeAdminPasswordModal()" class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">Cancelar</button>
+                <button type="button" onclick="submitAdminPassword()" class="flex-1 py-2.5 bg-salesiano-navy text-white rounded-xl text-sm font-bold hover:bg-blue-900 transition-colors shadow-md">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script id="initial-map-data" type="application/json">
+{
+    "pinScale":  0.7,
+    "points":  [
+                   {
+                       "id":  "p1",
+                       "num":  1,
+                       "x":  90.8518,
+                       "y":  12.9637,
+                       "title":  "1-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "primero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p2",
+                       "num":  2,
+                       "x":  91.0833,
+                       "y":  10.3462,
+                       "title":  "1-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "primero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p3",
+                       "num":  3,
+                       "x":  91.0278,
+                       "y":  8.27705,
+                       "title":  "1-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "primero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p4",
+                       "num":  4,
+                       "x":  85.1389,
+                       "y":  17.124,
+                       "title":  "2-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "segundo primaria.jpeg"
+                   },
+                   {
+                       "id":  "p5",
+                       "num":  5,
+                       "x":  82.4352,
+                       "y":  17.3408,
+                       "title":  "2-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "segundo primaria.jpeg"
+                   },
+                   {
+                       "id":  "p6",
+                       "num":  6,
+                       "x":  79.9583,
+                       "y":  17.0444,
+                       "title":  "2-C",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "segundo primaria.jpeg"
+                   },
+                   {
+                       "id":  "p7",
+                       "num":  7,
+                       "x":  80.9028,
+                       "y":  6.22115,
+                       "title":  "3-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "tercero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p8",
+                       "num":  8,
+                       "x":  83.3056,
+                       "y":  6.32726,
+                       "title":  "3-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "tercero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791563710429",
+                       "num":  9,
+                       "x":  86.0833,
+                       "y":  6.22115,
+                       "title":  "3-C",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "tercero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791564500813",
+                       "num":  10,
+                       "x":  82.6458,
+                       "y":  3.48251,
+                       "title":  "4-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "cuarto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791564518933",
+                       "num":  11,
+                       "x":  79.9722,
+                       "y":  3.38269,
+                       "title":  "4-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "cuarto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791564696013",
+                       "num":  12,
+                       "x":  77.6389,
+                       "y":  3.54186,
+                       "title":  "4-C",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "cuarto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565497453",
+                       "num":  13,
+                       "x":  95.3125,
+                       "y":  9.451447934963394,
+                       "title":  "5-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "quinto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565514717",
+                       "num":  14,
+                       "x":  95.3125,
+                       "y":  6.586355369716941,
+                       "title":  "5-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "quinto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565534005",
+                       "num":  15,
+                       "x":  95.39583333333333,
+                       "y":  4.198778232011565,
+                       "title":  "5-C",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "quinto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565592269",
+                       "num":  16,
+                       "x":  83.0625,
+                       "y":  19.001756485784902,
+                       "title":  "6-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "sexto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565604397",
+                       "num":  17,
+                       "x":  80.39583333333333,
+                       "y":  19.001756485784902,
+                       "title":  "6-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "sexto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565621933",
+                       "num":  18,
+                       "x":  77.9792,
+                       "y":  18.9222,
+                       "title":  "6-C",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "sexto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565640333",
+                       "num":  19,
+                       "x":  37.8125,
+                       "y":  6.50677,
+                       "title":  "SALA DE MUSICA DE PRIMARIA",
+                       "category":  "rehearsal",
+                       "description":  "Zona de Ensayos",
+                       "image":  "sala de musica primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565657333",
+                       "num":  20,
+                       "x":  42.1458,
+                       "y":  3.16416,
+                       "title":  "SALA DE E.FÍSICA",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "sala de musica primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565720557",
+                       "num":  21,
+                       "x":  91.5625,
+                       "y":  15.957595635210545,
+                       "title":  "sala de psicomotricidad ",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "psicomotricidad.jpeg"
+                   },
+                   {
+                       "id":  "p1791565936853",
+                       "num":  22,
+                       "x":  37.6458,
+                       "y":  96.976,
+                       "title":  "INGRESO PRINCIPAL",
+                       "category":  "entrance",
+                       "description":  "",
+                       "image":  "puerta principal.jpeg"
+                   },
+                   {
+                       "id":  "p1791565999052",
+                       "num":  23,
+                       "x":  74.8148,
+                       "y":  80.8845,
+                       "title":  "PATIO TECHADO 1",
+                       "category":  "stage",
+                       "description":  "",
+                       "image":  "patio techado primaria.jpeg",
+                       "additionalImages":  [
+                                                "patio techado secundaria.jpeg"
+                                            ]
+                   },
+                   {
+                       "id":  "p1791566039125",
+                       "num":  24,
+                       "x":  5.72917,
+                       "y":  76.3036,
+                       "title":  "PATIO TECHADO 2",
+                       "category":  "stage",
+                       "description":  "",
+                       "image":  "patio techado 2.jpeg"
+                   },
+                   {
+                       "id":  "p1791566054412",
+                       "num":  25,
+                       "x":  24.3125,
+                       "y":  93.89209270514355,
+                       "title":  "CAPILLA PINARDI",
+                       "category":  "stage",
+                       "description":  "",
+                       "image":  "capilla pinardi.jpeg"
+                   },
+                   {
+                       "id":  "p1791566108885",
+                       "num":  26,
+                       "x":  0.895833,
+                       "y":  79.1687,
+                       "title":  "INGRESO PASAJE JOSÉ OLAYA",
+                       "category":  "entrance",
+                       "description":  "",
+                       "image":  "pasaje Olaya.jpeg"
+                   },
+                   {
+                       "id":  "p1791566169629",
+                       "num":  27,
+                       "x":  56.395833333333336,
+                       "y":  89.73372919030669,
+                       "title":  "TÓPICO",
+                       "category":  "medical",
+                       "description":  "",
+                       "image":  "topico primaria.jpeg",
+                       "additionalImages":  [
+                                                "topico secundaria.jpeg"
+                                            ]
+                   },
+                   {
+                       "id":  "p1791566192397",
+                       "num":  28,
+                       "x":  49.7292,
+                       "y":  73.1003,
+                       "title":  "SS.HH DAMAS",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "baño primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566224148",
+                       "num":  29,
+                       "x":  80.9792,
+                       "y":  91.0071,
+                       "title":  "SS.HH DAMAS ",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "baño escalera.jpeg"
+                   },
+                   {
+                       "id":  "p1791566265805",
+                       "num":  30,
+                       "x":  78.89583333333333,
+                       "y":  73.33903284472977,
+                       "title":  "DUCHAS DAMAS",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "duchas.jpeg"
+                   },
+                   {
+                       "id":  "p1791566292284",
+                       "num":  31,
+                       "x":  77.9792,
+                       "y":  68.6435,
+                       "title":  "DUCHAS VARONES ",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "duchas.jpeg"
+                   },
+                   {
+                       "id":  "p1791566414436",
+                       "num":  32,
+                       "x":  58.3125,
+                       "y":  91.10658604448729,
+                       "title":  "SS.HH VARONES",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "baño secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566542612",
+                       "num":  33,
+                       "x":  17.145833333333332,
+                       "y":  91.64379090047099,
+                       "title":  "SS.HH VARONES ",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "baño primero.jpeg"
+                   },
+                   {
+                       "id":  "p1791566621740",
+                       "num":  34,
+                       "x":  14.645833333333332,
+                       "y":  91.80296270965135,
+                       "title":  "1-A",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "primero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566637124",
+                       "num":  35,
+                       "x":  9.229166666666666,
+                       "y":  91.72337680506116,
+                       "title":  "1-B",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "primero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566671548",
+                       "num":  36,
+                       "x":  4.5625,
+                       "y":  91.5642049958808,
+                       "title":  "1-C",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "primero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566690380",
+                       "num":  39,
+                       "x":  21.8125,
+                       "y":  71.1106,
+                       "title":  "2-C",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "segundo secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566719780",
+                       "num":  37,
+                       "x":  32.0625,
+                       "y":  71.4489,
+                       "title":  "2-A",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "segundo secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566768956",
+                       "num":  38,
+                       "x":  26.6458,
+                       "y":  71.2101,
+                       "title":  "2-B",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "segundo secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566879348",
+                       "num":  40,
+                       "x":  48.229166666666664,
+                       "y":  71.11062751620474,
+                       "title":  "3-A",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "tercero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566890700",
+                       "num":  41,
+                       "x":  42.4792,
+                       "y":  70.9515,
+                       "title":  "3-B",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "tercero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566903492",
+                       "num":  42,
+                       "x":  37.5625,
+                       "y":  71.11062751620474,
+                       "title":  "3-B",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "tercero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566922476",
+                       "num":  43,
+                       "x":  37.97916666666667,
+                       "y":  74.85116503194317,
+                       "title":  "4-A",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  ""
+                   },
+                   {
+                       "id":  "p1791566939908",
+                       "num":  44,
+                       "x":  42.645833333333336,
+                       "y":  74.85116503194317,
+                       "title":  "4-B",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  ""
+                   },
+                   {
+                       "id":  "p1791566952180",
+                       "num":  45,
+                       "x":  48.0625,
+                       "y":  75.24909455489407,
+                       "title":  "4-C",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  ""
+                   },
+                   {
+                       "id":  "p1791566962172",
+                       "num":  46,
+                       "x":  32.0625,
+                       "y":  74.9308,
+                       "title":  "5-A",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "quinto secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566971948",
+                       "num":  47,
+                       "x":  26.645833333333336,
+                       "y":  74.85116503194317,
+                       "title":  "5-B ",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "quinto secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566988644",
+                       "num":  48,
+                       "x":  21.645833333333332,
+                       "y":  75.01033684112353,
+                       "title":  "5-C",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "quinto secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791567008420",
+                       "num":  49,
+                       "x":  45.729166666666664,
+                       "y":  85.99319167456827,
+                       "title":  "KIOSKO",
+                       "category":  "food",
+                       "description":  "",
+                       "image":  "kiosco.jpeg"
+                   }
+               ]
+}
+    </script>
+
+    <script>
+        // --- 1. CONFIGURACIÓN Y DATOS INICIALES ---
+        
+        const ADMIN_PASSWORD = 'admin2026'; // Cambiar esta contraseña según sea necesario
+
+        const CATEGORIES = {
+            stage: { id: 'stage', label: 'Escenario', color: 'bg-purple-600', icon: 'fa-music' },
+            rehearsal: { id: 'rehearsal', label: 'Zona Ensayo', color: 'bg-blue-500', icon: 'fa-guitar' },
+            lodging: { id: 'lodging', label: 'Alojamiento', color: 'bg-orange-500', icon: 'fa-bed' },
+            food: { id: 'food', label: 'Comedor', color: 'bg-green-500', icon: 'fa-utensils' },
+            restroom: { id: 'restroom', label: 'Baños', color: 'bg-cyan-500', icon: 'fa-restroom' },
+            medical: { id: 'medical', label: 'Tópico / Auxilios', color: 'bg-red-500', icon: 'fa-truck-medical' },
+            entrance: { id: 'entrance', label: 'Ingreso', color: 'bg-slate-800', icon: 'fa-door-open' }
+        };
+
+        const initialMapData = JSON.parse(document.getElementById('initial-map-data').textContent);
+        let points = initialMapData.points;
+
+        const state = {
+            mode: 'user', // 'user' o 'admin'
+            selectedId: null,
+            search: '',
+            addMode: false,
+            pinScale: initialMapData.pinScale // Factor base de escala para pines pequeños por defecto
+        };
+
+        // --- SISTEMA DE NOTIFICACIONES Y CONFIRMACIONES SIN ALERT/CONFIRM ---
+        function showNotification(title, message, isError = false) {
+            document.getElementById('notification-title').textContent = title;
+            document.getElementById('notification-message').textContent = message;
+            const iconEl = document.getElementById('notification-icon');
+            if (isError) {
+                iconEl.className = 'w-12 h-12 mx-auto rounded-full bg-red-100 text-salesiano-red flex items-center justify-center text-xl mb-4';
+                iconEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                iconEl.className = 'w-12 h-12 mx-auto rounded-full bg-blue-100 text-salesiano-blue flex items-center justify-center text-xl mb-4';
+                iconEl.innerHTML = '<i class="fa-solid fa-info"></i>';
+            }
+            const modal = document.getElementById('notification-modal');
+            const content = document.getElementById('notification-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        window.closeNotification = function() {
+            const modal = document.getElementById('notification-modal');
+            const content = document.getElementById('notification-content');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function showConfirm(title, message, onConfirm) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('confirm-content');
+            
+            const okBtn = document.getElementById('confirm-ok-btn');
+            const cancelBtn = document.getElementById('confirm-cancel-btn');
+            
+            // Reemplazar listeners previos
+            const newOk = okBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(newOk, okBtn);
+            
+            const newCancel = cancelBtn.cloneNode(true);
+            cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+            
+            newOk.addEventListener('click', () => {
+                closeConfirm();
+                if (onConfirm) onConfirm();
+            });
+            
+            newCancel.addEventListener('click', () => {
+                closeConfirm();
+            });
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeConfirm() {
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('confirm-content');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function showAdminPasswordModal() {
+            const modal = document.getElementById('admin-password-modal');
+            const content = document.getElementById('admin-password-content');
+            const input = document.getElementById('admin-password-input');
+            input.value = '';
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                input.focus();
+            }, 10);
+        }
+
+        function closeAdminPasswordModal() {
+            const modal = document.getElementById('admin-password-modal');
+            const content = document.getElementById('admin-password-content');
+            const input = document.getElementById('admin-password-input');
+            input.value = '';
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        window.submitAdminPassword = function() {
+            const input = document.getElementById('admin-password-input');
+            const password = (input.value || '').trim();
+
+            if (password === ADMIN_PASSWORD) {
+                state.mode = 'admin';
+                document.getElementById('admin-icon').classList.replace('fa-lock', 'fa-unlock-keyhole');
+                document.getElementById('btn-toggle-admin').classList.add('text-salesiano-gold');
+                document.getElementById('admin-text').textContent = 'Modo Admin';
+                document.getElementById('admin-controls').classList.remove('hidden');
+                document.getElementById('admin-controls').classList.add('flex');
+                closeAdminPasswordModal();
+                showNotification('Modo Admin Activado', 'Ahora puedes arrastrar ubicaciones, añadir más de 40 puntos y ajustar el tamaño de los pines.');
+            } else {
+                closeAdminPasswordModal();
+                if (password.length > 0) {
+                    showNotification('Acceso Denegado', 'Contraseña incorrecta.', true);
+                }
+            }
+            renderAll();
+        }
+
+        // --- 2. TRANSICIÓN DE INTRODUCCIÓN ---
+        document.getElementById('enter-btn').addEventListener('click', () => {
+            const intro = document.getElementById('intro-view');
+            const app = document.getElementById('app-view');
+            
+            intro.classList.add('intro-exit');
+            
+            setTimeout(() => {
+                intro.classList.add('hidden');
+                app.classList.remove('hidden');
+                void app.offsetWidth;
+                app.classList.remove('opacity-0');
+                
+                setTimeout(() => {
+                    const sc = document.getElementById('map-scroll-container');
+                    if(sc.scrollWidth > sc.clientWidth) sc.scrollLeft = (sc.scrollWidth - sc.clientWidth) / 2;
+                    if(sc.scrollHeight > sc.clientHeight) sc.scrollTop = (sc.scrollHeight - sc.clientHeight) / 2;
+                }, 100);
+            }, 800);
+        });
+
+        // --- 3. RENDERIZADO DE LA INTERFAZ ---
+
+        function renderAll() {
+            renderLegend();
+            renderPins();
+            renderSidebar();
+        }
+
+        function renderSidebar() {
+            const legendEl = document.getElementById('legend-container');
+            const detailsEl = document.getElementById('details-container');
+            
+            if (state.selectedId) {
+                legendEl.classList.add('hidden');
+                detailsEl.classList.remove('hidden');
+                renderDetails();
+            } else {
+                legendEl.classList.remove('hidden');
+                detailsEl.classList.add('hidden');
+            }
+        }
+
+        function renderLegend() {
+            const container = document.getElementById('legend-list');
+            container.innerHTML = '';
+            
+            const sorted = [...points].sort((a, b) => (a.num || 0) - (b.num || 0));
+            
+            let count = 0;
+            sorted.forEach(point => {
+                const q = state.search.toLowerCase();
+                if (q && !point.title.toLowerCase().includes(q) && !(point.description||'').toLowerCase().includes(q)) return;
+                
+                count++;
+                const cat = CATEGORIES[point.category] || CATEGORIES.stage;
+                const isActive = state.selectedId === point.id;
+                
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-4 cursor-pointer border-b border-slate-200/60 transition-all group ${isActive ? 'bg-white shadow-sm' : 'hover:bg-white'}`;
+                item.onclick = () => selectPoint(point.id);
+                
+                item.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-white font-black text-sm shadow-md border-2 border-white ${cat.color}">
+                            ${point.num || ''}
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm leading-tight transition-colors ${isActive ? 'text-salesiano-blue' : 'text-slate-800 group-hover:text-salesiano-blue'}">${point.title}</h4>
+                            <p class="text-[0.7rem] text-slate-500 font-semibold mt-0.5"><i class="fa-solid ${cat.icon} mr-1 opacity-70"></i>${cat.label}</p>
+                        </div>
+                    </div>
+                    ${state.mode === 'admin' ? `
+                    <div class="flex gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-salesiano-blue flex items-center justify-center transition-colors shadow-sm border border-transparent hover:border-slate-200" onclick="event.stopPropagation(); editPoint('${point.id}')" title="Editar">
+                            <i class="fa-solid fa-pen text-xs"></i>
+                        </button>
+                        <button class="w-8 h-8 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors shadow-sm border border-transparent hover:border-red-100" onclick="event.stopPropagation(); deletePoint('${point.id}')" title="Eliminar">
+                            <i class="fa-solid fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                    ` : '<i class="fa-solid fa-chevron-right text-slate-300 text-xs opacity-0 group-hover:opacity-100 transition-opacity"></i>'}
+                `;
+                container.appendChild(item);
+            });
+            
+            if (count === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm font-medium"><i class="fa-solid fa-folder-open text-3xl mb-3 block opacity-50"></i>No se encontraron lugares.</div>`;
+            }
+        }
+
+        // Render Map Pins (Tamaño adaptable por zoom y escala de admin)
+        function renderPins() {
+            const mapContainer = document.getElementById('map-container');
+            mapContainer.querySelectorAll('.map-pin').forEach(p => p.remove());
+            
+            // Tamaño de pin adaptable según el zoom y la escala configurada por admin
+            // Tamaño base reducido para soportar 40+ ubicaciones cómodamente
+            const basePinSize = 24; // px en escala 100%
+            const currentPinSize = basePinSize * state.pinScale;
+            const currentFontSize = Math.max(10, Math.round(11 * state.pinScale));
+            const borderWidth = Math.max(1.5, Math.round(2 * state.pinScale));
+
+            points.forEach((point) => {
+                const q = state.search.toLowerCase();
+                if (q && !point.title.toLowerCase().includes(q) && !(point.description||'').toLowerCase().includes(q)) return;
+
+                const cat = CATEGORIES[point.category] || CATEGORIES.stage;
+                const isActive = state.selectedId === point.id;
+                
+                const pin = document.createElement('div');
+                pin.className = `map-pin absolute -translate-x-1/2 -translate-y-1/2 transition-transform ${isActive ? 'z-30 scale-125' : 'z-10 hover:scale-110 hover:z-20'} ${state.mode === 'admin' ? 'admin-draggable' : 'cursor-pointer'}`;
+                pin.style.left = `${point.x}%`;
+                pin.style.top = `${point.y}%`;
+                pin.dataset.id = point.id;
+                
+                pin.innerHTML = `
+                    <div style="width: ${currentPinSize}px; height: ${currentPinSize}px; font-size: ${currentFontSize}px; border-width: ${borderWidth}px;" class="rounded-full flex items-center justify-center text-white font-black shadow-[0_4px_8px_rgba(0,0,0,0.3)] border-white ${cat.color} ${isActive ? 'ring-4 ring-salesiano-gold/60 ring-offset-1' : ''}">
+                        ${point.num || ''}
+                    </div>
+                    <!-- Tooltip al hacer hover -->
+                    <div class="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 bg-slate-800/95 backdrop-blur-sm text-white text-[0.6rem] md:text-[0.65rem] font-bold px-2 py-1 rounded-md shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ${isActive ? 'opacity-100' : ''} border border-white/10 z-30">
+                        ${point.title}
+                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 border-3 border-transparent border-b-slate-800/95"></div>
+                    </div>
+                `;
+                
+                pin.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!pinHasMoved) selectPoint(point.id);
+                });
+                
+                if (state.mode === 'admin') attachDragEvents(pin, point);
+                
+                mapContainer.appendChild(pin);
+            });
+        }
+
+        function renderDetails() {
+            const point = points.find(p => p.id === state.selectedId);
+            if (!point) return;
+            const cat = CATEGORIES[point.category];
+            const content = document.getElementById('details-content');
+            
+            const imagePaths = [point.image, ...(Array.isArray(point.additionalImages) ? point.additionalImages : [])]
+                .filter(image => typeof image === 'string' && image.trim());
+            const imgHTML = imagePaths.length ? imagePaths.map((imgPath, index) => `
+                <div class="mt-5 rounded-2xl overflow-hidden border border-slate-200 shadow-md relative group bg-slate-100">
+                    <img src="${imgPath}" onerror="this.onerror=null; this.src='https://placehold.co/800x600/f8fafc/94a3b8?text=Imagen:+${encodeURIComponent(imgPath)}';" alt="${point.title} - Imagen ${index + 1}" class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105">
+                </div>
+            `).join('') : `
+                <div class="mt-5 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 p-8 flex flex-col items-center justify-center text-slate-400">
+                     <i class="fa-solid fa-image text-4xl mb-3 opacity-50"></i>
+                     <span class="text-sm font-semibold">Sin imagen asignada</span>
+                </div>
+            `;
+            
+            content.innerHTML = `
+                <div class="mb-3">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.7rem] font-bold text-white uppercase tracking-wider shadow-sm ${cat.color}">
+                        <i class="fa-solid ${cat.icon}"></i> ${cat.label}
+                    </span>
+                </div>
+                <h2 class="text-2xl font-black text-slate-800 mb-2 leading-tight flex items-start gap-3">
+                    <span class="text-salesiano-gold">${point.num}.</span> ${point.title}
+                </h2>
+                <div class="w-10 h-1 bg-salesiano-blue/20 rounded-full mb-4"></div>
+                <p class="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">${point.description || 'No hay descripción disponible.'}</p>
+                ${imgHTML}
+            `;
+        }
+
+        // --- 4. INTERACCIONES Y EVENTOS ---
+        
+        function selectPoint(id) {
+            state.selectedId = id;
+            renderAll();
+            
+            if (id && window.innerWidth < 768) {
+                document.getElementById('sidebar').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            state.search = e.target.value;
+            renderAll();
+        });
+
+        let draggingPinId = null;
+        let pinHasMoved = false;
+        
+        let isPanningMap = false;
+        let mapHasDragged = false;
+        let panStartX = 0, panStartY = 0;
+        const mapContainer = document.getElementById('map-container');
+        const scrollContainer = document.getElementById('map-scroll-container');
+
+        function attachDragEvents(pinEl, point) {
+            const handleDown = (e) => {
+                if (state.mode !== 'admin') return;
+                e.stopPropagation();
+                if(e.type === 'touchstart') e.preventDefault();
+                
+                draggingPinId = point.id;
+                pinHasMoved = false;
+                pinEl.classList.add('!z-50', '!scale-110');
+            };
+            pinEl.addEventListener('mousedown', handleDown);
+            pinEl.addEventListener('touchstart', handleDown, {passive: false});
+        }
+
+        function handleGlobalMove(e) {
+            if (draggingPinId) {
+                if(e.type === 'touchmove') e.preventDefault();
+                pinHasMoved = true;
+                
+                const ev = e.touches ? e.touches[0] : e;
+                const rect = mapContainer.getBoundingClientRect();
+                
+                let xPercent = ((ev.clientX - rect.left) / rect.width) * 100;
+                let yPercent = ((ev.clientY - rect.top) / rect.height) * 100;
+                
+                xPercent = Math.max(0, Math.min(xPercent, 100));
+                yPercent = Math.max(0, Math.min(yPercent, 100));
+                
+                const pinEl = document.querySelector(`.map-pin[data-id="${draggingPinId}"]`);
+                if (pinEl) {
+                    pinEl.style.left = `${xPercent}%`;
+                    pinEl.style.top = `${yPercent}%`;
+                }
+            } else if (isPanningMap) {
+                e.preventDefault();
+                mapHasDragged = true;
+                const ev = e.touches ? e.touches[0] : e;
+                const dx = ev.clientX - panStartX;
+                const dy = ev.clientY - panStartY;
+                scrollContainer.scrollLeft -= dx;
+                scrollContainer.scrollTop -= dy;
+                panStartX = ev.clientX;
+                panStartY = ev.clientY;
+            }
+        }
+
+        function handleGlobalUp() {
+            if (draggingPinId) {
+                const pinEl = document.querySelector(`.map-pin[data-id="${draggingPinId}"]`);
+                const point = points.find(p => p.id === draggingPinId);
+                if (point && pinEl) {
+                    point.x = parseFloat(pinEl.style.left);
+                    point.y = parseFloat(pinEl.style.top);
+                    pinEl.classList.remove('!z-50', '!scale-110');
+                }
+                draggingPinId = null;
+            }
+            if (isPanningMap) {
+                isPanningMap = false;
+                scrollContainer.style.cursor = state.addMode ? 'crosshair' : 'grab';
+            }
+        }
+
+        window.addEventListener('mousemove', handleGlobalMove);
+        window.addEventListener('touchmove', handleGlobalMove, {passive: false});
+        window.addEventListener('mouseup', handleGlobalUp);
+        window.addEventListener('touchend', handleGlobalUp);
+
+        scrollContainer.addEventListener('mousedown', (e) => {
+            if (state.addMode || e.button !== 0 || e.target.closest('.map-pin')) return;
+            isPanningMap = true;
+            mapHasDragged = false;
+            panStartX = e.clientX;
+            panStartY = e.clientY;
+            scrollContainer.style.cursor = 'grabbing';
+        });
+
+        mapContainer.addEventListener('click', (e) => {
+            if (mapHasDragged || pinHasMoved) return;
+            
+            if (state.addMode) {
+                const rect = mapContainer.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                
+                const newNum = points.length > 0 ? Math.max(...points.map(p => p.num || 0)) + 1 : 1;
+                
+                openModal({
+                    id: 'p' + Date.now(),
+                    num: newNum,
+                    x: x,
+                    y: y,
+                    title: '',
+                    category: 'stage',
+                    description: '',
+                    image: ''
+                });
+            } else if (!e.target.closest('.map-pin')) {
+                selectPoint(null);
+            }
+        });
+
+        // Zoom y Slider de Tamaño de Pines
+        let zoomLevel = 1;
+        const MAP_BASE_WIDTH = 1200;
+        function setZoom(level) {
+            zoomLevel = Math.max(0.5, Math.min(level, 3));
+            mapContainer.style.width = `${MAP_BASE_WIDTH * zoomLevel}px`;
+            document.getElementById('btn-zoom-reset').textContent = `${Math.round(zoomLevel * 100)}%`;
+            // Al hacer zoom, actualizamos los pines para adaptarse proporcionalmente
+            renderPins();
+        }
+
+        // Slider de tamaño de pin en modo admin
+        const pinSizeSlider = document.getElementById('pin-size-slider');
+        pinSizeSlider.addEventListener('input', (e) => {
+            state.pinScale = parseFloat(e.target.value);
+            document.getElementById('pin-size-label').textContent = `Pin: ${Math.round(state.pinScale * 100)}%`;
+            renderPins();
+        });
+
+        // --- 5. LÓGICA DE ADMINISTRADOR ---
+        
+        document.getElementById('btn-toggle-admin').addEventListener('click', () => {
+            if (state.mode === 'user') {
+                showAdminPasswordModal();
+            } else {
+                state.mode = 'user';
+                setAddMode(false);
+                document.getElementById('admin-icon').classList.replace('fa-unlock-keyhole', 'fa-lock');
+                document.getElementById('btn-toggle-admin').classList.remove('text-salesiano-gold');
+                document.getElementById('admin-text').textContent = "Modo Visitante";
+                document.getElementById('admin-controls').classList.add('hidden');
+                document.getElementById('admin-controls').classList.remove('flex');
+            }
+            renderAll();
+        });
+
+        function setAddMode(active) {
+            state.addMode = active;
+            const ind = document.getElementById('add-mode-indicator');
+            if (active) {
+                document.body.classList.add('add-mode');
+                ind.classList.remove('hidden');
+                selectPoint(null);
+                scrollContainer.style.cursor = 'crosshair';
+            } else {
+                document.body.classList.remove('add-mode');
+                ind.classList.add('hidden');
+                scrollContainer.style.cursor = 'grab';
+            }
+        }
+        
+        document.getElementById('btn-add-point').addEventListener('click', () => setAddMode(true));
+        document.getElementById('btn-cancel-add').addEventListener('click', () => setAddMode(false));
+
+        function openModal(data) {
+            document.getElementById('form-id').value = data.id || '';
+            document.getElementById('form-num').value = data.num || '';
+            document.getElementById('form-x').value = data.x;
+            document.getElementById('form-y').value = data.y;
+            document.getElementById('form-title').value = data.title || '';
+            document.getElementById('form-category').value = data.category || 'stage';
+            document.getElementById('form-desc').value = data.description || '';
+            document.getElementById('form-image').value = data.image || '';
+            
+            document.getElementById('modal-title').textContent = points.some(p => p.id === data.id) ? 'Editar Ubicación' : 'Añadir Nueva Ubicación';
+            
+            const modal = document.getElementById('point-modal');
+            const content = document.getElementById('point-modal-content');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        window.closeModal = function() {
+            const modal = document.getElementById('point-modal');
+            const content = document.getElementById('point-modal-content');
+            
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        window.savePoint = function() {
+            const form = document.getElementById('point-form');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            const id = document.getElementById('form-id').value;
+            const existingPoint = points.find(pt => pt.id === id);
+            const p = {
+                id: id,
+                num: parseInt(document.getElementById('form-num').value) || 1,
+                x: parseFloat(document.getElementById('form-x').value),
+                y: parseFloat(document.getElementById('form-y').value),
+                title: document.getElementById('form-title').value,
+                category: document.getElementById('form-category').value,
+                description: document.getElementById('form-desc').value,
+                image: document.getElementById('form-image').value,
+                additionalImages: existingPoint && Array.isArray(existingPoint.additionalImages) ? existingPoint.additionalImages : []
+            };
+            
+            const idx = points.findIndex(pt => pt.id === id);
+            if (idx >= 0) points[idx] = p;
+            else points.push(p);
+            
+            setAddMode(false);
+            closeModal();
+            selectPoint(p.id);
+        }
+
+        window.editPoint = function(id) {
+            const point = points.find(p => p.id === id);
+            if (point) openModal(point);
+        }
+
+        window.deletePoint = function(id) {
+            showConfirm('Eliminar Ubicación', '¿Seguro que deseas eliminar permanentemente este lugar del mapa?', () => {
+                points = points.filter(p => p.id !== id);
+                if (state.selectedId === id) selectPoint(null);
+                else renderAll();
+            });
+        }
+
+        // Exportar e Importar JSON (Local)
+        document.getElementById('btn-export').addEventListener('click', () => {
+            const exportData = {
+                pinScale: state.pinScale,
+                points: points
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", "mapa_salesiano_datos.json");
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+        });
+
+        document.getElementById('btn-import').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    if (Array.isArray(imported)) {
+                        points = imported;
+                        selectPoint(null);
+                        showNotification('Importación Exitosa', 'Datos cargados correctamente.');
+                    } else if (imported && Array.isArray(imported.points)) {
+                        points = imported.points;
+                        if (typeof imported.pinScale === 'number') {
+                            state.pinScale = imported.pinScale;
+                            pinSizeSlider.value = state.pinScale;
+                            document.getElementById('pin-size-label').textContent = `Pin: ${Math.round(state.pinScale * 100)}%`;
+                        }
+                        selectPoint(null);
+                        showNotification('Importación Exitosa', 'Datos y configuración de pines cargados correctamente.');
+                    } else {
+                        showNotification('Error', 'Formato de archivo inválido.', true);
+                    }
+                } catch (error) {
+                    showNotification('Error', 'Error al leer el archivo JSON.', true);
+                }
+                e.target.value = ''; 
+            };
+            reader.readAsText(file);
+        });
+
+        // --- 6. INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const select = document.getElementById('form-category');
+            Object.values(CATEGORIES).forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.label}</option>`;
+            });
+
+            document.getElementById('btn-zoom-in').addEventListener('click', () => setZoom(zoomLevel + 0.25));
+            document.getElementById('btn-zoom-out').addEventListener('click', () => setZoom(zoomLevel - 0.25));
+            document.getElementById('btn-zoom-reset').addEventListener('click', () => setZoom(1));
+
+            renderAll();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,501 @@
+{
+    "pinScale":  0.7,
+    "points":  [
+                   {
+                       "id":  "p1",
+                       "num":  1,
+                       "x":  90.8518,
+                       "y":  12.9637,
+                       "title":  "1-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "primero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p2",
+                       "num":  2,
+                       "x":  91.0833,
+                       "y":  10.3462,
+                       "title":  "1-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "primero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p3",
+                       "num":  3,
+                       "x":  91.0278,
+                       "y":  8.27705,
+                       "title":  "1-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "primero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p4",
+                       "num":  4,
+                       "x":  85.1389,
+                       "y":  17.124,
+                       "title":  "2-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "segundo primaria.jpeg"
+                   },
+                   {
+                       "id":  "p5",
+                       "num":  5,
+                       "x":  82.4352,
+                       "y":  17.3408,
+                       "title":  "2-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "segundo primaria.jpeg"
+                   },
+                   {
+                       "id":  "p6",
+                       "num":  6,
+                       "x":  79.9583,
+                       "y":  17.0444,
+                       "title":  "2-C",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "segundo primaria.jpeg"
+                   },
+                   {
+                       "id":  "p7",
+                       "num":  7,
+                       "x":  80.9028,
+                       "y":  6.22115,
+                       "title":  "3-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "tercero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p8",
+                       "num":  8,
+                       "x":  83.3056,
+                       "y":  6.32726,
+                       "title":  "3-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "tercero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791563710429",
+                       "num":  9,
+                       "x":  86.0833,
+                       "y":  6.22115,
+                       "title":  "3-C",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "tercero primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791564500813",
+                       "num":  10,
+                       "x":  82.6458,
+                       "y":  3.48251,
+                       "title":  "4-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "cuarto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791564518933",
+                       "num":  11,
+                       "x":  79.9722,
+                       "y":  3.38269,
+                       "title":  "4-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "cuarto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791564696013",
+                       "num":  12,
+                       "x":  77.6389,
+                       "y":  3.54186,
+                       "title":  "4-C",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "cuarto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565497453",
+                       "num":  13,
+                       "x":  95.3125,
+                       "y":  9.451447934963394,
+                       "title":  "5-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "quinto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565514717",
+                       "num":  14,
+                       "x":  95.3125,
+                       "y":  6.586355369716941,
+                       "title":  "5-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "quinto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565534005",
+                       "num":  15,
+                       "x":  95.39583333333333,
+                       "y":  4.198778232011565,
+                       "title":  "5-C",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "quinto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565592269",
+                       "num":  16,
+                       "x":  83.0625,
+                       "y":  19.001756485784902,
+                       "title":  "6-A",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "sexto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565604397",
+                       "num":  17,
+                       "x":  80.39583333333333,
+                       "y":  19.001756485784902,
+                       "title":  "6-B",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "sexto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565621933",
+                       "num":  18,
+                       "x":  77.9792,
+                       "y":  18.9222,
+                       "title":  "6-C",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "sexto primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565640333",
+                       "num":  19,
+                       "x":  37.8125,
+                       "y":  6.50677,
+                       "title":  "SALA DE MUSICA DE PRIMARIA",
+                       "category":  "rehearsal",
+                       "description":  "Zona de Ensayos",
+                       "image":  "sala de musica primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565657333",
+                       "num":  20,
+                       "x":  42.1458,
+                       "y":  3.16416,
+                       "title":  "SALA DE E.FÍSICA",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "sala de musica primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791565720557",
+                       "num":  21,
+                       "x":  91.5625,
+                       "y":  15.957595635210545,
+                       "title":  "sala de psicomotricidad ",
+                       "category":  "rehearsal",
+                       "description":  "",
+                       "image":  "psicomotricidad.jpeg"
+                   },
+                   {
+                       "id":  "p1791565936853",
+                       "num":  22,
+                       "x":  37.6458,
+                       "y":  96.976,
+                       "title":  "INGRESO PRINCIPAL",
+                       "category":  "entrance",
+                       "description":  "",
+                       "image":  "puerta principal.jpeg"
+                   },
+                   {
+                       "id":  "p1791565999052",
+                       "num":  23,
+                       "x":  74.8148,
+                       "y":  80.8845,
+                       "title":  "PATIO TECHADO 1",
+                       "category":  "stage",
+                       "description":  "",
+                       "image":  "patio techado primaria.jpeg",
+                       "additionalImages":  [
+                                                "patio techado secundaria.jpeg"
+                                            ]
+                   },
+                   {
+                       "id":  "p1791566039125",
+                       "num":  24,
+                       "x":  5.72917,
+                       "y":  76.3036,
+                       "title":  "PATIO TECHADO 2",
+                       "category":  "stage",
+                       "description":  "",
+                       "image":  "patio techado 2.jpeg"
+                   },
+                   {
+                       "id":  "p1791566054412",
+                       "num":  25,
+                       "x":  24.3125,
+                       "y":  93.89209270514355,
+                       "title":  "CAPILLA PINARDI",
+                       "category":  "stage",
+                       "description":  "",
+                       "image":  "capilla pinardi.jpeg"
+                   },
+                   {
+                       "id":  "p1791566108885",
+                       "num":  26,
+                       "x":  0.895833,
+                       "y":  79.1687,
+                       "title":  "INGRESO PASAJE JOSÉ OLAYA",
+                       "category":  "entrance",
+                       "description":  "",
+                       "image":  "pasaje Olaya.jpeg"
+                   },
+                   {
+                       "id":  "p1791566169629",
+                       "num":  27,
+                       "x":  56.395833333333336,
+                       "y":  89.73372919030669,
+                       "title":  "TÓPICO",
+                       "category":  "medical",
+                       "description":  "",
+                       "image":  "topico primaria.jpeg",
+                       "additionalImages":  [
+                                                "topico secundaria.jpeg"
+                                            ]
+                   },
+                   {
+                       "id":  "p1791566192397",
+                       "num":  28,
+                       "x":  49.7292,
+                       "y":  73.1003,
+                       "title":  "SS.HH DAMAS",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "baño primaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566224148",
+                       "num":  29,
+                       "x":  80.9792,
+                       "y":  91.0071,
+                       "title":  "SS.HH DAMAS ",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "baño escalera.jpeg"
+                   },
+                   {
+                       "id":  "p1791566265805",
+                       "num":  30,
+                       "x":  78.89583333333333,
+                       "y":  73.33903284472977,
+                       "title":  "DUCHAS DAMAS",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "duchas.jpeg"
+                   },
+                   {
+                       "id":  "p1791566292284",
+                       "num":  31,
+                       "x":  77.9792,
+                       "y":  68.6435,
+                       "title":  "DUCHAS VARONES ",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "duchas.jpeg"
+                   },
+                   {
+                       "id":  "p1791566414436",
+                       "num":  32,
+                       "x":  58.3125,
+                       "y":  91.10658604448729,
+                       "title":  "SS.HH VARONES",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "baño secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566542612",
+                       "num":  33,
+                       "x":  17.145833333333332,
+                       "y":  91.64379090047099,
+                       "title":  "SS.HH VARONES ",
+                       "category":  "restroom",
+                       "description":  "",
+                       "image":  "baño primero.jpeg"
+                   },
+                   {
+                       "id":  "p1791566621740",
+                       "num":  34,
+                       "x":  14.645833333333332,
+                       "y":  91.80296270965135,
+                       "title":  "1-A",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "primero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566637124",
+                       "num":  35,
+                       "x":  9.229166666666666,
+                       "y":  91.72337680506116,
+                       "title":  "1-B",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "primero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566671548",
+                       "num":  36,
+                       "x":  4.5625,
+                       "y":  91.5642049958808,
+                       "title":  "1-C",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "primero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566690380",
+                       "num":  39,
+                       "x":  21.8125,
+                       "y":  71.1106,
+                       "title":  "2-C",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "segundo secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566719780",
+                       "num":  37,
+                       "x":  32.0625,
+                       "y":  71.4489,
+                       "title":  "2-A",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "segundo secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566768956",
+                       "num":  38,
+                       "x":  26.6458,
+                       "y":  71.2101,
+                       "title":  "2-B",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "segundo secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566879348",
+                       "num":  40,
+                       "x":  48.229166666666664,
+                       "y":  71.11062751620474,
+                       "title":  "3-A",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "tercero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566890700",
+                       "num":  41,
+                       "x":  42.4792,
+                       "y":  70.9515,
+                       "title":  "3-B",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "tercero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566903492",
+                       "num":  42,
+                       "x":  37.5625,
+                       "y":  71.11062751620474,
+                       "title":  "3-B",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "tercero secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566922476",
+                       "num":  43,
+                       "x":  37.97916666666667,
+                       "y":  74.85116503194317,
+                       "title":  "4-A",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  ""
+                   },
+                   {
+                       "id":  "p1791566939908",
+                       "num":  44,
+                       "x":  42.645833333333336,
+                       "y":  74.85116503194317,
+                       "title":  "4-B",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  ""
+                   },
+                   {
+                       "id":  "p1791566952180",
+                       "num":  45,
+                       "x":  48.0625,
+                       "y":  75.24909455489407,
+                       "title":  "4-C",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  ""
+                   },
+                   {
+                       "id":  "p1791566962172",
+                       "num":  46,
+                       "x":  32.0625,
+                       "y":  74.9308,
+                       "title":  "5-A",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "quinto secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566971948",
+                       "num":  47,
+                       "x":  26.645833333333336,
+                       "y":  74.85116503194317,
+                       "title":  "5-B ",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "quinto secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791566988644",
+                       "num":  48,
+                       "x":  21.645833333333332,
+                       "y":  75.01033684112353,
+                       "title":  "5-C",
+                       "category":  "lodging",
+                       "description":  "",
+                       "image":  "quinto secundaria.jpeg"
+                   },
+                   {
+                       "id":  "p1791567008420",
+                       "num":  49,
+                       "x":  45.729166666666664,
+                       "y":  85.99319167456827,
+                       "title":  "KIOSKO",
+                       "category":  "food",
+                       "description":  "",
+                       "image":  "kiosco.jpeg"
+                   }
+               ]
+}
